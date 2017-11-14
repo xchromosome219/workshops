@@ -359,7 +359,9 @@ div.tocify {
     <li>
       <a href="r-viz-gapminder.html">Data Visualization</a>
     </li>
-    <li class="dropdown-header">Reproducible Research &amp; RMarkdown</li>
+    <li>
+      <a href="r-rmarkdown.html">Reproducible Research &amp; RMarkdown</a>
+    </li>
     <li class="dropdown-header">Essential Statistics with R</li>
     <li class="dropdown-header">Survival Analysis with TCGA Data</li>
     <li class="dropdown-header">Drawing &amp; annotating phylogenetic trees</li>
@@ -405,6 +407,9 @@ div.tocify {
     <li>
       <a href="r-viz-gapminder.html">Data Visualization</a>
     </li>
+    <li>
+      <a href="r-rmarkdown.html">Reproducible Research &amp; RMarkdown</a>
+    </li>
     <li class="divider"></li>
     <li class="dropdown-header">--- Homework ---</li>
     <li>
@@ -412,6 +417,9 @@ div.tocify {
     </li>
     <li>
       <a href="r-viz-homework.html">Data Visualization</a>
+    </li>
+    <li>
+      <a href="r-rmarkdown-homework.html">Reproducible Research &amp; RMarkdown</a>
     </li>
   </ul>
 </li>
@@ -635,12 +643,16 @@ nh</code></pre>
 ## #   DiabetesAge &lt;int&gt;, nPregnancies &lt;int&gt;, nBabies &lt;int&gt;,
 ## #   SleepHrsNight &lt;int&gt;, PhysActive &lt;chr&gt;, PhysActiveDays &lt;int&gt;,
 ## #   AlcoholDay &lt;int&gt;, AlcoholYear &lt;int&gt;, SmokingStatus &lt;chr&gt;</code></pre>
+<p>Take a look at that output. The nice thing about loading dplyr and reading data with readr functions is that data are displayed in a much more friendly way. This dataset has 5,000 rows and 32 columns. When you import/convert data this way and try to display the object in the console, instead of trying to display all 5,000 rows, you’ll only see about 10 by default. Also, if you have so many columns that the data would wrap off the edge of your screen, those columns will not be displayed, but you’ll see at the bottom of the output which, if any, columns were hidden from view.</p>
 <blockquote>
 <p><em><strong>A note on characters versus factors:</strong></em> One thing that you immediately notice is that all the categorical variables are read in as <em>character</em> data types. This data type is used for storing strings of text, for example, IDs, names, descriptive text, etc. There’s another related data type called <em><strong>factors</strong></em>. Factor variables are used to represent categorical variables with two or more <em>levels</em>, e.g., “male” or “female” for Gender, or “Single” versus “Committed” for RelationshipStatus. For the most part, statistical analysis treats these two data types the same. It’s often easier to leave categorical variables as characters. However, in some cases you may get a warning message alerting you that a character variable was converted into a factor variable during analysis. Generally, these warnings are nothing to worry about. You can, if you like, convert individual variables to factor variables, or simply use dplyr’s <code>mutate_if</code> to convert all character vectors to factor variables:</p>
 </blockquote>
 <pre class="r"><code>nh &lt;- nh %&gt;% mutate_if(is.character, as.factor)
 nh</code></pre>
-<p>Take a look at that output. The nice thing about loading dplyr and reading data with readr functions is that data are displayed in a much more friendly way. This dataset has 5,000 rows and 32 columns. When you import/convert data this way and try to display the object in the console, instead of trying to display all 5,000 rows, you’ll only see about 10 by default. Also, if you have so many columns that the data would wrap off the edge of your screen, those columns will not be displayed, but you’ll see at the bottom of the output which, if any, columns were hidden from view.</p>
+<p>Now just take a look at just a few columns that are now factors. Remember, you can look at individual variables with the <code>mydataframe$specificVariable</code> syntax.</p>
+<pre class="r"><code>nh$RelationshipStatus
+nh$Race
+levels(nh$Race)</code></pre>
 <p>If you want to see the whole dataset, there are two ways to do this. First, you can click on the name of the data.frame in the <strong>Environment</strong> panel in RStudio. Or you could use the <code>View()</code> function (<em>with a capital V</em>).</p>
 <pre class="r"><code>View(nh)</code></pre>
 <p>Recall several built-in functions that are useful for working with data frames.</p>
@@ -699,9 +711,12 @@ nh %&gt;%
 <pre class="r"><code>summary(nh)</code></pre>
 <div id="missing-data" class="section level3">
 <h3>Missing data</h3>
-<p>Let’s try taking the mean of a different variable.</p>
-<pre class="r"><code>mean(nh$Income)</code></pre>
-<pre><code>## [1] NA</code></pre>
+<p>Let’s try taking the mean of a different variable, either the dplyr way or the simpler <code>$</code> way.</p>
+<pre class="r"><code># the dplyr way: returns a single-row single-column tibble/dataframe
+nh %&gt;% summarize(mean(Income))
+
+# returns a single value
+mean(nh$Income)</code></pre>
 <p>What happened there? <code>NA</code> indicates <em>missing data</em>. Take a look at the Income variable.</p>
 <pre class="r"><code># Look at just the Income variable
 nh$Income
@@ -963,6 +978,9 @@ t.test(AlcoholYear~RelationshipStatus, data=nha, alternative=&quot;less&quot;)</
 <pre class="r"><code># P-value computed on an F-test with 1 and 3552 degrees of freedom
 1-pf(2.347, df1=1, df2=3552)</code></pre>
 <pre><code>## [1] 0.1256134</code></pre>
+<blockquote>
+<p><i class="fa fa-exclamation-triangle" aria-hidden="true"></i> <em><strong>A note on dummy coding:</strong></em> If you have a <span class="math inline">\(k\)</span>-level factor, R creates <span class="math inline">\(k-1\)</span> dummy variables, or indicator variables, by default, using the alphabetically first level as baseline. For example, the levels of RelationshipStatus are “Committed” and “Single”. R creates a dummy variable called “RelationshipStatusSingle” that’s <strong>0</strong> if you’re committed, and <strong>1</strong> if you’re Single. The linear model is saying for every unit increase in RelationshipStatusSingle, i.e., going from committed to single, results in a 0.314-unit increase in BMI. You can change the ordering of the factors to change the interpretation of the model (e.g., treating Single as baseline and going from Single to Committed). We’ll do this in the next section.</p>
+</blockquote>
 </div>
 <div id="anova" class="section level3">
 <h3>ANOVA</h3>
@@ -995,30 +1013,54 @@ anova(fit)</code></pre>
 ##   (151 observations deleted due to missingness)
 ## Multiple R-squared:  0.009472,   Adjusted R-squared:  0.008915 
 ## F-statistic: 16.99 on 2 and 3553 DF,  p-value: 4.54e-08</code></pre>
-<p>The F-test on the ANOVA table tells us that there <em>is</em> a significant difference in means between current, former, and never smokers (p=<span class="math inline">\(4.54 \times 10^{-8}\)</span>). However, the linear model output might not have been what we wanted. Because the default handling of categorical variables is to treat the alphabetical first level as the baseline, “Current” smokers are treated as baseline, and this mean becomes the intercept, and the coefficients on “Former” and “Never” describe how those groups’ means differ from current smokers. What if we wanted “Never” smokers to be the baseline, followed by Former, then Current? Have a look at <code>?factor</code> to relevel the factor levels.</p>
+<p>The F-test on the ANOVA table tells us that there <em>is</em> a significant difference in means between current, former, and never smokers (p=<span class="math inline">\(4.54 \times 10^{-8}\)</span>). However, the linear model output might not have been what we wanted. Because the default handling of categorical variables is to treat the alphabetical first level as the baseline, “Current” smokers are treated as baseline, and this mean becomes the intercept, and the coefficients on “Former” and “Never” describe how those groups’ means differ from current smokers.</p>
+<p>Back to dummy coding / indicator variables: SmokingStatus is “Current”, “Former”, and “Never.” By default, R will create <em>two</em> indicator variables here that in tandem will explain this variable.</p>
+<table>
+<thead>
+<tr class="header">
+<th align="left">Original SmokingStatus</th>
+<th align="right">Indicator: SmokingStatusFormer</th>
+<th align="right">Indicator: SmokingStatusNever</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left"><em>Current</em></td>
+<td align="right">0</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="left"><em>Former</em></td>
+<td align="right">1</td>
+<td align="right">0</td>
+</tr>
+<tr class="odd">
+<td align="left"><em>Never</em></td>
+<td align="right">0</td>
+<td align="right">1</td>
+</tr>
+</tbody>
+</table>
+<p>What if we wanted “Never” smokers to be the baseline, followed by Former, then Current? Have a look at <code>?factor</code> to relevel the factor levels.</p>
 <pre class="r"><code># Look at nha$SmokingStatus
 nha$SmokingStatus
 
-# What if you turn it into a factor variable?
-factor(nha$SmokingStatus)
-
-# Now let&#39;s relevel it and see what that looks like. 
-factor(nha$SmokingStatus, levels=c(&quot;Never&quot;, &quot;Former&quot;, &quot;Current&quot;))
+# What happens if we relevel it? Let&#39;s see what that looks like.
+relevel(nha$SmokingStatus, ref=&quot;Never&quot;)
 
 # If we&#39;re happy with that, let&#39;s change the value of nha$SmokingStatus in place
-nha$SmokingStatus &lt;- factor(nha$SmokingStatus, levels=c(&quot;Never&quot;, &quot;Former&quot;, &quot;Current&quot;))</code></pre>
+nha$SmokingStatus &lt;- relevel(nha$SmokingStatus, ref=&quot;Never&quot;)
+
+# Or we could do this the dplyr way
+nha &lt;- nha %&gt;% 
+  mutate(SmokingStatus=relevel(SmokingStatus, ref=&quot;Never&quot;))</code></pre>
 <pre class="r"><code># Re-fit the model
 fit &lt;- lm(BMI~SmokingStatus, data=nha)
 
-# Show the ANOVA table
-anova(fit)</code></pre>
-<pre><code>## Analysis of Variance Table
-## 
-## Response: BMI
-##                 Df Sum Sq Mean Sq F value   Pr(&gt;F)
-## SmokingStatus    2   1411  705.50  16.988 4.54e-08
-## Residuals     3553 147551   41.53</code></pre>
-<pre class="r"><code># Print the full model statistics
+# Optionally, show the ANOVA table
+# anova(fit)
+
+# Print the full model statistics
 summary(fit)</code></pre>
 <pre><code>## 
 ## Call:
@@ -1031,8 +1073,8 @@ summary(fit)</code></pre>
 ## Coefficients:
 ##                      Estimate Std. Error t value Pr(&gt;|t|)
 ## (Intercept)           28.8558     0.1438 200.601  &lt; 2e-16
-## SmokingStatusFormer    0.3091     0.2632   1.175     0.24
 ## SmokingStatusCurrent  -1.4645     0.2838  -5.161  2.6e-07
+## SmokingStatusFormer    0.3091     0.2632   1.175     0.24
 ## 
 ## Residual standard error: 6.444 on 3553 degrees of freedom
 ##   (151 observations deleted due to missingness)
@@ -1048,9 +1090,9 @@ summary(fit)</code></pre>
 ## 
 ## $SmokingStatus
 ##                      diff        lwr        upr     p adj
-## Former-Never    0.3091076 -0.3079639  0.9261790 0.4685044
 ## Current-Never  -1.4644502 -2.1298249 -0.7990756 0.0000008
-## Current-Former -1.7735578 -2.5455631 -1.0015525 0.0000002</code></pre>
+## Former-Never    0.3091076 -0.3079639  0.9261790 0.4685044
+## Former-Current  1.7735578  1.0015525  2.5455631 0.0000002</code></pre>
 <p>This shows that there isn’t much of a difference between former and never smokers, but that both of these differ significantly from current smokers, who have significantly lower BMI.</p>
 <p>Finally, let’s visualize the differences in means between these groups. The <strong>NA</strong> category, which is omitted from the ANOVA, contains all the observations who have missing or non-recorded Smoking Status.</p>
 <pre class="r"><code>ggplot(nha, aes(SmokingStatus, BMI)) + geom_boxplot() + theme_classic()</code></pre>
@@ -1261,7 +1303,7 @@ prop.table(xt, margin=1)</code></pre>
 ##   1.235728</code></pre>
 <p>There’s a useful plot for visualizing contingency table data called a <em>mosaic</em> plot. Call the <code>mosaicplot()</code> function on the contingency table object. Note this is a built-in plot, <em>not</em> a ggplot2-style plot.</p>
 <pre class="r"><code>mosaicplot(xt, main=NA)</code></pre>
-<p><img src="r-stats_files/figure-html/unnamed-chunk-35-1.png" width="672" /></p>
+<p><img src="r-stats_files/figure-html/unnamed-chunk-37-1.png" width="672" /></p>
 <p>Let’s create a different contingency table, this time looking at the relationship between race and whether the person had health insurance. Display the table with marginal totals.</p>
 <pre class="r"><code>xt &lt;- xtabs(~Race+Insured, data=nha)
 addmargins(xt)</code></pre>
@@ -1305,7 +1347,7 @@ addmargins(xt)</code></pre>
 ##   White    467.79595 1980.20405</code></pre>
 <p>We can also make a mosaic plot similar to above:</p>
 <pre class="r"><code>mosaicplot(xt, main=NA)</code></pre>
-<p><img src="r-stats_files/figure-html/unnamed-chunk-40-1.png" width="768" /></p>
+<p><img src="r-stats_files/figure-html/unnamed-chunk-42-1.png" width="768" /></p>
 </div>
 <div id="logistic-regression" class="section level3">
 <h3>Logistic regression</h3>
@@ -1319,30 +1361,19 @@ addmargins(xt)</code></pre>
 <pre class="r"><code>mod &lt;- glm(y ~ x, data=yourdata, family=&#39;binomial&#39;)
 summary(mod)</code></pre>
 <p>Before we fit a logistic regression model let’s <em>relevel</em> the Race variable so that “White” is the baseline. We saw above that people who identify as “White” have the highest rates of being insured. When we run the logistic regression, we’ll get a separate coefficient (effect) for each level of the factor variable(s) in the model, telling you the increased odds that that level has, <em>as compared to the baseline group</em>.</p>
-<pre class="r"><code>#Look at Race: it&#39;s a character vector
+<pre class="r"><code>#Look at Race. The default ordering is alphabetical
 nha$Race
 
-# What if we coerce it into a factor?
-factor(nha$Race)
-
-# Default levels are alphabetical: Asian Black Hispanic Mexican Other White
 # Let&#39;s relevel that where the group with the highest rate of insurance is &quot;baseline&quot;
-relevel(factor(nha$Race), ref=&quot;White&quot;)
+relevel(nha$Race, ref=&quot;White&quot;)
 
 # If we&#39;re happy with that result, permanently change it
-nha$Race &lt;- relevel(factor(nha$Race), ref=&quot;White&quot;)</code></pre>
-<p>Now, let’s fit a logistic regression model assessing how the odds of being insured change with different levels of race. Before we do that we need to turn “Insured” into a factor variable also.</p>
-<pre class="r"><code># Take a look
-nha$Insured
+nha$Race &lt;- relevel(nha$Race, ref=&quot;White&quot;)
 
-# Factor it, take a look
-factor(nha$Insured)
-
-# Make the factor coercion stick
-nha$Insured &lt;- factor(nha$Insured)
-
-# Take a look
-nha$Insured</code></pre>
+# Or do it the dplyr way
+nha &lt;- nha %&gt;% 
+  mutate(Race=relevel(Race, ref=&quot;White&quot;))</code></pre>
+<p>Now, let’s fit a logistic regression model assessing how the odds of being insured change with different levels of race.</p>
 <pre class="r"><code>fit &lt;- glm(Insured~Race, data=nha, family=&quot;binomial&quot;)
 summary(fit)</code></pre>
 <pre><code>## 
@@ -1653,7 +1684,7 @@ augment(fit) %&gt;% head</code></pre>
 augment(fit) %&gt;% 
   filter(Gender==&quot;male&quot;) %&gt;% 
   ggplot(aes(.fitted, .resid, col=PhysActive, size=Age)) + geom_point()</code></pre>
-<p><img src="r-stats_files/figure-html/unnamed-chunk-57-1.png" width="672" /></p>
+<p><img src="r-stats_files/figure-html/unnamed-chunk-58-1.png" width="672" /></p>
 <p>Finally, several summary statistics are computed for the entire regression, such as <span class="math inline">\(R^2\)</span> and the F-statistic. These can be accessed with <code>glance</code>:</p>
 <pre class="r"><code>glance(fit)</code></pre>
 <pre><code>##   r.squared adj.r.squared   sigma statistic p.value df    logLik      AIC
@@ -1752,7 +1783,7 @@ tidy(glmfit) %&gt;%
   filter(term!=&quot;(Intercept)&quot;) %&gt;% 
   mutate(logp=-1*log10(p.value)) %&gt;% 
   ggplot(aes(term, logp)) + geom_bar(stat=&quot;identity&quot;) + coord_flip()</code></pre>
-<p><img src="r-stats_files/figure-html/unnamed-chunk-62-1.png" width="672" /></p>
+<p><img src="r-stats_files/figure-html/unnamed-chunk-63-1.png" width="672" /></p>
 <p>Check out some of the other <a href="https://cran.r-project.org/web/packages/broom/index.html"><strong>broom</strong> vignettes on CRAN</a>, and also check out the <a href="http://bioconductor.org/packages/release/bioc/html/biobroom.html"><strong>biobroom</strong> package</a> on bioconductor for turning bioconductor objects and analytical results into tidy data frames.</p>
 </div>
 <div id="homework" class="section level2">
